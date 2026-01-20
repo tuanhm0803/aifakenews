@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+.env.local
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.vscode/
+.idea/
+*.log
+.DS_Store
+*.sqlite3
+
+# Docker
+.env.docker.local
+backup.sql
