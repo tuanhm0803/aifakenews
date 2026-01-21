@@ -281,3 +281,5 @@ This is a satirical project for entertainment purposes. All news articles are co
 ---
 
 Built with ❤️ and AI in Manteiv (the backward version of Vietnam)
+
+test

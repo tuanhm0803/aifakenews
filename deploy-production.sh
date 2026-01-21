@@ -99,19 +99,30 @@ if [ ! -f "nginx/ssl/fullchain.pem" ]; then
     # Install certbot
     apt-get install -y certbot
     
-    # Get domain from .env
-    DOMAIN=$(grep DOMAIN .env | cut -d '=' -f2)
+    # Get domain and email from .env (trim whitespace and quotes)
+    DOMAIN=$(grep "^DOMAIN=" .env | cut -d '=' -f2 | tr -d ' \r\n"'"'"'')
+    SSL_EMAIL=$(grep "^SSL_EMAIL=" .env | cut -d '=' -f2 | tr -d ' \r\n"'"'"'')
     
     if [ -z "$DOMAIN" ]; then
         echo -e "${RED}❌ DOMAIN not set in .env file${NC}"
         exit 1
     fi
     
+    if [ -z "$SSL_EMAIL" ] || [ "$SSL_EMAIL" == "your-email@example.com" ]; then
+        echo -e "${YELLOW}⚠️  SSL_EMAIL not properly set in .env file${NC}"
+        echo "Please enter your email address for SSL certificate registration:"
+        read -p "Email: " SSL_EMAIL
+        SSL_EMAIL=$(echo "$SSL_EMAIL" | tr -d ' \r\n"'"'"'')
+    fi
+    
+    echo -e "${GREEN}📧 Using email: ${SSL_EMAIL}${NC}"
+    echo -e "${GREEN}🌐 Using domain: ${DOMAIN}${NC}"
+    
     echo -e "${YELLOW}🌐 Obtaining SSL certificate for ${DOMAIN}...${NC}"
     certbot certonly --standalone --preferred-challenges http \
         -d ${DOMAIN} -d www.${DOMAIN} \
         --non-interactive --agree-tos \
-        --email admin@${DOMAIN}
+        --email ${SSL_EMAIL}
     
     # Copy certificates to nginx directory
     cp /etc/letsencrypt/live/${DOMAIN}/fullchain.pem nginx/ssl/
