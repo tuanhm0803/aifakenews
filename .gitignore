@@ -19,3 +19,10 @@ ENV/
 # Docker
 .env.docker.local
 backup.sql
+
+# Deployment
+*.zip
+*.ps1
+
+# Local files
+aifakenews-deploy.zip
