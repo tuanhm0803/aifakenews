@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+// Use relative path so nginx can proxy in production
+// In dev, Vite proxy handles it (see vite.config.js)
+const API_BASE_URL = '/api';
 
 export const newsApi = {
   // Get all news articles
