@@ -24,7 +24,7 @@ const Header = () => {
           <Link to="/" className="flex items-center space-x-3">
             <div className="text-3xl font-bold">📰</div>
             <div>
-              <h1 className="text-2xl font-bold">Manteiv Daily News</h1>
+              <h1 className="text-2xl font-bold">AI Fake Daily News</h1>
               <p className="text-sm text-blue-200">AI-Powered Fake News Network</p>
             </div>
           </Link>
