@@ -1,14 +1,18 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../contexts/LanguageContext'
 
-const NewsCard = ({ article, featured = false }) => {
+const NewsCard = ({ article, featured = false, layout = 'default' }) => {
+  const { t, language } = useLanguage()
   const formatDate = (dateString) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    const now = new Date()
+    const diff = Math.floor((now - date) / 1000 / 60) // minutes
+    
+    if (diff < 60) return `${diff} ${t('minutesAgo')}`
+    if (diff < 1440) return `${Math.floor(diff / 60)} ${t('hoursAgo')}`
+    const locale = language === 'vi' ? 'vi-VN' : 'en-US'
+    return date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
   const truncateContent = (content, maxLength = 150) => {
@@ -16,40 +20,85 @@ const NewsCard = ({ article, featured = false }) => {
     return content.substring(0, maxLength) + '...'
   }
 
-  if (featured) {
+  // Large Featured Card
+  if (featured && layout === 'hero') {
     return (
-      <Link to={`/article/${article.id}`} className="block">
-        <div className="news-card h-full">
-          <div className="relative h-64 bg-gradient-to-r from-manteiv-blue to-blue-600">
-            <div className="absolute top-4 left-4 bg-manteiv-gold text-white px-3 py-1 rounded-full text-sm font-bold">
-              ⭐ FEATURED
+      <Link to={`/article/${article.id}`} className="block group">
+        <div className="news-card h-full overflow-hidden">
+          <div className="grid md:grid-cols-2 gap-0">
+            <div className="news-card-image h-80 md:h-full">
+              <div className="absolute top-4 left-4 z-10">
+                <span className="category-badge bg-red-600 text-white">
+                  🔥 HOT
+                </span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="text-white text-8xl opacity-20">📰</div>
+              </div>
             </div>
-            <div className="absolute inset-0 flex items-center justify-center text-white text-6xl">
-              📰
+            <div className="p-8 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="category-badge">{article.category}</span>
+                <span className="text-xs text-gray-500">• {formatDate(article.published_date)}</span>
+              </div>
+              <h2 className="text-3xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
+                {article.title}
+              </h2>
+              <p className="text-gray-600 mb-6 line-clamp-3">
+                {truncateContent(article.content, 250)}
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-4 text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <span>👁️</span> {article.views}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span>📍</span> {article.location}
+                  </span>
+                </div>
+                <span className="text-blue-600 font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
+                  {t('readMore')} <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </span>
+              </div>
             </div>
           </div>
-          <div className="p-6">
-            <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
-              <span className="bg-manteiv-blue text-white px-2 py-1 rounded text-xs">
-                {article.category}
+        </div>
+      </Link>
+    )
+  }
+
+  // Featured Card
+  if (featured) {
+    return (
+      <Link to={`/article/${article.id}`} className="block group">
+        <div className="news-card h-full">
+          <div className="news-card-image h-56">
+            <div className="absolute top-3 left-3">
+              <span className="category-badge bg-orange-500 text-white">
+                ⭐ Featured
               </span>
-              <span>•</span>
-              <span>{article.location}</span>
-              <span>•</span>
-              <span>{formatDate(article.published_date)}</span>
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900 hover:text-manteiv-blue transition-colors">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
+              <div className="text-white text-7xl opacity-20">📰</div>
+            </div>
+          </div>
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="category-badge">{article.category}</span>
+              <span className="text-xs text-gray-400">• {formatDate(article.published_date)}</span>
+            </div>
+            <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
               {article.title}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              {truncateContent(article.content, 200)}
+            </h3>
+            <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+              {truncateContent(article.content, 180)}
             </p>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">
-                👁️ {article.views} views
+            <div className="flex items-center justify-between text-sm pt-3 border-t border-gray-100">
+              <span className="text-gray-500 flex items-center gap-1">
+                <span>👁️</span> {article.views}
               </span>
-              <span className="text-manteiv-blue font-semibold">
-                Read More →
+              <span className="text-blue-600 font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
+                {t('viewMore')} <span className="group-hover:translate-x-1 transition-transform">→</span>
               </span>
             </div>
           </div>
@@ -58,35 +107,31 @@ const NewsCard = ({ article, featured = false }) => {
     )
   }
 
+  // Default Card
   return (
-    <Link to={`/article/${article.id}`} className="block">
+    <Link to={`/article/${article.id}`} className="block group">
       <div className="news-card h-full">
-        <div className="relative h-48 bg-gradient-to-r from-gray-400 to-gray-500">
-          <div className="absolute inset-0 flex items-center justify-center text-white text-4xl">
-            📄
+        <div className="news-card-image h-44">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <div className="text-gray-400 text-5xl">📄</div>
           </div>
         </div>
-        <div className="p-5">
-          <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
-            <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
-              {article.category}
-            </span>
-            <span>•</span>
-            <span>{formatDate(article.published_date)}</span>
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="category-badge text-xs">{article.category}</span>
+            <span className="text-xs text-gray-400">{formatDate(article.published_date)}</span>
           </div>
-          <h3 className="text-xl font-bold mb-2 text-gray-900 hover:text-manteiv-blue transition-colors">
+          <h3 className="text-base font-bold mb-2 text-gray-900 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
             {article.title}
           </h3>
-          <p className="text-gray-600 text-sm mb-3">
-            {truncateContent(article.content)}
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+            {truncateContent(article.content, 120)}
           </p>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">
-              👁️ {article.views} views
+          <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+            <span className="flex items-center gap-1">
+              <span>👁️</span> {article.views}
             </span>
-            <span className="text-manteiv-blue font-semibold">
-              Read More →
-            </span>
+            <span className="text-blue-600 font-medium">→</span>
           </div>
         </div>
       </div>

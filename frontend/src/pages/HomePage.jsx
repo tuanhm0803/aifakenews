@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { newsApi } from '../api/newsApi'
 import NewsCard from '../components/NewsCard'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const HomePage = () => {
+  const { t } = useLanguage()
   const [featuredNews, setFeaturedNews] = useState([])
   const [allNews, setAllNews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,8 +20,8 @@ const HomePage = () => {
     try {
       setLoading(true)
       const [featured, all] = await Promise.all([
-        newsApi.getFeaturedNews(3),
-        newsApi.getAllNews(0, 12)
+        newsApi.getFeaturedNews(4),
+        newsApi.getAllNews(0, 16)
       ])
       setFeaturedNews(featured)
       setAllNews(all)
@@ -58,79 +60,105 @@ const HomePage = () => {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <div className="text-6xl mb-4">📰</div>
-          <p className="text-xl text-gray-600">Loading the latest fake news...</p>
+          <div className="text-6xl mb-4 animate-pulse">📰</div>
+          <p className="text-xl text-gray-600">{t('loading')}...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-manteiv-blue to-blue-600 text-white rounded-2xl p-8 mb-12 shadow-xl">
-        <h2 className="text-4xl font-bold mb-4">Welcome to Manteiv Daily News</h2>
-        <p className="text-xl mb-6">
-          Your #1 source for completely fabricated news stories powered by AI! 
-          Featuring stories about famous billionaires and more!
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <button
-            onClick={() => handleGenerateNews(false)}
-            disabled={generating}
-            className="btn-secondary"
-          >
-            {generating ? '⏳ Generating...' : '✨ Generate Random News'}
-          </button>
-          <button
-            onClick={() => handleGenerateNews(true)}
-            disabled={generating}
-            className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200"
-          >
-            {generating ? '⏳ Generating...' : '💎 Generate Billionaire Story'}
-          </button>
+    <div className="bg-gray-50">
+      <div className="container mx-auto px-4 py-6">
+        {/* Quick Actions Bar */}
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">✨</span>
+              <div>
+                <h2 className="font-bold text-gray-900">Tạo tin tức giả AI</h2>
+                <p className="text-sm text-gray-500">Tạo ngẫu nhiên hoặc về tỷ phú nổi tiếng</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => handleGenerateNews(false)}
+                disabled={generating}
+                className="btn-primary text-sm"
+              >
+                {generating ? '⏳ Đang tạo...' : '🎲 Tạo tin ngẫu nhiên'}
+              </button>
+              <button
+                onClick={() => handleGenerateNews(true)}
+                disabled={generating}
+                className="btn-secondary text-sm"
+              >
+                {generating ? '⏳ Đang tạo...' : '💎 Tạo tin về tỷ phú'}
+              </button>
+            </div>
+          </div>
+          {stats && (
+            <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-600">
+              📊 Tổng số bài viết giả: <span className="font-bold text-blue-600">{stats.total_articles}</span>
+            </div>
+          )}
         </div>
-        {stats && (
-          <div className="mt-6 text-sm">
-            📊 Total Fake Articles Published: <span className="font-bold text-manteiv-gold">{stats.total_articles}</span>
-          </div>
-        )}
-      </div>
 
-      {/* Featured News */}
-      {featuredNews.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold mb-6 flex items-center">
-            <span className="text-manteiv-gold mr-2">⭐</span>
-            Featured Stories
+
+        {/* Hero Featured Story */}
+        {featuredNews.length > 0 && (
+          <section className="mb-8">
+            <NewsCard article={featuredNews[0]} featured={true} layout="hero" />
+          </section>
+        )}
+
+        {/* Top Stories Grid */}
+        {featuredNews.length > 1 && (
+          <section className="mb-8">
+            <h2 className="section-title">
+              <span className="flex items-center gap-2">
+                <span>🔥</span>
+                <span>{t('hotStories')}</span>
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {featuredNews.slice(1).map(article => (
+                <NewsCard key={article.id} article={article} featured={true} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Latest News */}
+        <section className="mb-8">
+          <h2 className="section-title">
+            <span className="flex items-center gap-2">
+              <span>📰</span>
+              <span>{t('latestNews')}</span>
+            </span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredNews.map(article => (
-              <NewsCard key={article.id} article={article} featured={true} />
-            ))}
-          </div>
+          {allNews.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+              <div className="text-6xl mb-4">📭</div>
+              <p className="text-xl text-gray-600 mb-2 font-semibold">{t('noArticles')}</p>
+              <p className="text-gray-500 mb-6">{t('noArticlesDescription')}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {allNews.map(article => (
+                <NewsCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
         </section>
-      )}
 
-      {/* Latest News */}
-      <section>
-        <h2 className="text-3xl font-bold mb-6 flex items-center">
-          <span className="mr-2">📰</span>
-          Latest News
-        </h2>
-        {allNews.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-xl text-gray-600 mb-4">No news articles yet!</p>
-            <p className="text-gray-500 mb-6">Click the buttons above to generate some fake news.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {allNews.map(article => (
-              <NewsCard key={article.id} article={article} />
-            ))}
-          </div>
-        )}
-      </section>
+        {/* Additional Info Banner */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 text-center border border-blue-100">
+          <p className="text-gray-700">
+            <span className="font-bold text-blue-600">{t('infoNote')}:</span> {t('infoText')} 🎭
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
