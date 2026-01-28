@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { newsApi } from '../api/newsApi'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const Header = () => {
   const [categories, setCategories] = useState([])
   const [scrolled, setScrolled] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const location = useLocation()
   const { language, toggleLanguage, t } = useLanguage()
+  const { user, logout, isAuthenticated } = useAuth()
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -69,6 +72,53 @@ const Header = () => {
                 <span className="text-lg">{language === 'en' ? '🇻🇳' : '🇺🇸'}</span>
                 <span>{language === 'en' ? 'VI' : 'EN'}</span>
               </button>
+
+              {/* User Authentication */}
+              {isAuthenticated() ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    <span>👤</span>
+                    <span>{user?.username}</span>
+                    {user?.role === 'admin' && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">Admin</span>}
+                    {user?.role === 'author' && <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded">Author</span>}
+                  </button>
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <div className="px-4 py-2 text-sm text-gray-500 border-b">
+                        <div className="font-semibold text-gray-900">{user?.full_name || user?.username}</div>
+                        <div className="text-xs">{user?.email}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          logout()
+                          setShowUserMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        🚪 Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    🔐 Đăng nhập
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    📝 Đăng ký
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
           

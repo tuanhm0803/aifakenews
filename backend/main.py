@@ -1,13 +1,16 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import timedelta
 import models
 import schemas
 import crud
 from database import engine, get_db
 from ai_service import ai_generator
 from scheduler import start_scheduler
+import auth
 import logging
 
 # Create database tables
@@ -77,9 +80,10 @@ def get_news_article(article_id: int, db: Session = Depends(get_db)):
 @app.post("/api/news/generate", response_model=schemas.NewsArticle)
 def generate_news(
     request: schemas.NewsGenerationRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.require_author_or_admin)
 ):
-    """Generate a new fake news article using AI"""
+    """Generate a new fake news article using AI (Admin/Author only)"""
     try:
         news_data = ai_generator.generate_news(
             topic=request.topic,
@@ -120,3 +124,87 @@ def get_stats(db: Session = Depends(get_db)):
         "total_articles": total_articles,
         "country": "Manteiv"
     }
+
+# Authentication endpoints
+@app.post("/api/auth/register", response_model=schemas.User)
+def register(
+    user: schemas.UserCreate,
+    db: Session = Depends(get_db)
+):
+    """Register a new user"""
+    # Check if username exists
+    db_user = auth.get_user_by_username(db, user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    # Check if email exists
+    db_user = auth.get_user_by_email(db, user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user
+    return auth.create_user(db, user)
+
+@app.post("/api/auth/login", response_model=schemas.Token)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    """Login and get access token"""
+    user = auth.authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+@app.post("/api/auth/login/json", response_model=schemas.Token)
+async def login_json(
+    credentials: schemas.UserLogin,
+    db: Session = Depends(get_db)
+):
+    """Login with JSON body and get access token"""
+    user = auth.authenticate_user(db, credentials.username, credentials.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password"
+        )
+    
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+@app.get("/api/auth/me", response_model=schemas.User)
+async def get_me(
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    """Get current user info"""
+    return current_user
+
+@app.get("/api/users", response_model=List[schemas.User])
+async def list_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.require_admin)
+):
+    """List all users (Admin only)"""
+    return db.query(models.User).all()

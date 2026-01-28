@@ -81,10 +81,28 @@ fi
 
 # 7. Verify .env has required values
 echo -e "${YELLOW}🔍 Verifying .env configuration...${NC}"
-if grep -q "CHANGE_THIS" .env || grep -q "your_gemini_api_key_here" .env; then
+
+# Check for placeholder values
+NEEDS_UPDATE=false
+if grep -q "CHANGE_THIS" .env || grep -q "your_gemini_api_key_here" .env || grep -q "CHANGE_THIS_TO_SECURE_RANDOM_STRING" .env; then
+    NEEDS_UPDATE=true
+fi
+
+# Generate JWT secret if not set
+JWT_SECRET=$(grep "^JWT_SECRET_KEY=" .env | cut -d '=' -f2 | tr -d ' \r\n"'"'"'')
+if [ -z "$JWT_SECRET" ] || [ "$JWT_SECRET" == "CHANGE_THIS_TO_SECURE_RANDOM_STRING" ] || [ "$JWT_SECRET" == "change-this-to-a-random-secret-key-in-production" ]; then
+    echo -e "${YELLOW}🔐 Generating secure JWT secret key...${NC}"
+    NEW_JWT_SECRET=$(openssl rand -hex 32)
+    sed -i "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=${NEW_JWT_SECRET}/" .env
+    echo -e "${GREEN}✅ JWT secret key generated and saved to .env${NC}"
+fi
+
+if [ "$NEEDS_UPDATE" = true ]; then
     echo -e "${RED}❌ Please update .env file with actual values:${NC}"
-    echo "  - POSTGRES_PASSWORD"
-    echo "  - GEMINI_API_KEY"
+    echo "  - POSTGRES_PASSWORD (change from default)"
+    echo "  - GEMINI_API_KEY (add your API key)"
+    echo ""
+    echo -e "${GREEN}ℹ️  JWT_SECRET_KEY has been auto-generated${NC}"
     echo ""
     read -p "Press Enter after updating .env file..."
 fi
@@ -165,6 +183,13 @@ echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo ""
 echo -e "${GREEN}🎉 Your website should now be accessible at:${NC}"
 echo -e "${GREEN}   https://aifakenews.cloud${NC}"
+echo ""
+echo -e "${GREEN}👥 Demo user accounts (auto-created):${NC}"
+echo -e "${GREEN}   Admin:  admin / admin123 (can generate news)${NC}"
+echo -e "${GREEN}   Author: author / author123 (can generate news)${NC}"
+echo -e "${GREEN}   Viewer: viewer / viewer123 (view only)${NC}"
+echo ""
+echo -e "${YELLOW}⚠️  IMPORTANT: Change these passwords in production!${NC}"
 echo ""
 echo -e "${YELLOW}📋 Useful commands:${NC}"
 echo "  View logs:        docker-compose -f docker-compose.prod.yml logs -f"

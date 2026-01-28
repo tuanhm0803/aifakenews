@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { newsApi } from '../api/newsApi'
 import NewsCard from '../components/NewsCard'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useAuth } from '../contexts/AuthContext'
+import { Link } from 'react-router-dom'
 
 const HomePage = () => {
   const { t } = useLanguage()
+  const { canGenerateNews, isAuthenticated, user } = useAuth()
   const [featuredNews, setFeaturedNews] = useState([])
   const [allNews, setAllNews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -77,24 +80,55 @@ const HomePage = () => {
               <span className="text-2xl">✨</span>
               <div>
                 <h2 className="font-bold text-gray-900">Tạo tin tức giả AI</h2>
-                <p className="text-sm text-gray-500">Tạo ngẫu nhiên hoặc về tỷ phú nổi tiếng</p>
+                <p className="text-sm text-gray-500">
+                  {canGenerateNews() 
+                    ? 'Tạo ngẫu nhiên hoặc về tỷ phú nổi tiếng'
+                    : '🔒 Chỉ Admin và Author mới có thể tạo tin tức'}
+                </p>
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => handleGenerateNews(false)}
-                disabled={generating}
-                className="btn-primary text-sm"
-              >
-                {generating ? '⏳ Đang tạo...' : '🎲 Tạo tin ngẫu nhiên'}
-              </button>
-              <button
-                onClick={() => handleGenerateNews(true)}
-                disabled={generating}
-                className="btn-secondary text-sm"
-              >
-                {generating ? '⏳ Đang tạo...' : '💎 Tạo tin về tỷ phú'}
-              </button>
+              {canGenerateNews() ? (
+                <>
+                  <button
+                    onClick={() => handleGenerateNews(false)}
+                    disabled={generating}
+                    className="btn-primary text-sm"
+                  >
+                    {generating ? '⏳ Đang tạo...' : '🎲 Tạo tin ngẫu nhiên'}
+                  </button>
+                  <button
+                    onClick={() => handleGenerateNews(true)}
+                    disabled={generating}
+                    className="btn-secondary text-sm"
+                  >
+                    {generating ? '⏳ Đang tạo...' : '💎 Tạo tin về tỷ phú'}
+                  </button>
+                </>
+              ) : (
+                <div className="flex gap-3">
+                  {isAuthenticated() ? (
+                    <div className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg">
+                      👁️ Bạn chỉ có quyền xem tin tức (Role: {user?.role})
+                    </div>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        🔐 Đăng nhập để tạo tin
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        📝 Đăng ký
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {stats && (

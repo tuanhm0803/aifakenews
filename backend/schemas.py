@@ -1,7 +1,39 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional
 
+# User schemas
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str
+    role: str = "viewer"  # admin, author, viewer
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class User(UserBase):
+    id: int
+    role: str
+    is_active: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: User
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+# News schemas
 class NewsArticleBase(BaseModel):
     title: str
     content: str
