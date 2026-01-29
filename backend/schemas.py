@@ -58,3 +58,34 @@ class NewsGenerationRequest(BaseModel):
     topic: Optional[str] = None
     category: str = "general"
     include_billionaire: bool = False
+
+# About page schemas
+class AboutContentUpdate(BaseModel):
+    content: str
+
+class AboutContent(BaseModel):
+    content: str
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+# Feature schemas
+class FeatureBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class FeatureCreate(FeatureBase):
+    pass
+
+class FeatureUpdate(FeatureBase):
+    pass
+
+class Feature(FeatureBase):
+    id: int
+    created_at: datetime
+    created_by: Optional[str] = None
+    
+    class Config:
+        from_attributes = True

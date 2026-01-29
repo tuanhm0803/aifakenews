@@ -38,3 +38,53 @@ def delete_news_article(db: Session, article_id: int):
 
 def get_article_count(db: Session):
     return db.query(models.NewsArticle).count()
+
+def get_about_content(db: Session):
+    return db.query(models.AboutContent).first()
+
+def update_about_content(db: Session, content: str, username: str = None):
+    about = db.query(models.AboutContent).first()
+    if about:
+        about.content = content
+        about.updated_by = username
+    else:
+        about = models.AboutContent(content=content, updated_by=username)
+        db.add(about)
+    db.commit()
+    db.refresh(about)
+    return about
+
+# Feature CRUD operations
+def get_all_features(db: Session, model):
+    return db.query(model).order_by(model.created_at.desc()).all()
+
+def get_feature(db: Session, model, feature_id: int):
+    return db.query(model).filter(model.id == feature_id).first()
+
+def create_feature(db: Session, model, name: str, description: str = None, username: str = None):
+    feature = model(name=name, description=description, created_by=username)
+    db.add(feature)
+    db.commit()
+    db.refresh(feature)
+    return feature
+
+def update_feature(db: Session, model, feature_id: int, name: str, description: str = None):
+    feature = db.query(model).filter(model.id == feature_id).first()
+    if feature:
+        feature.name = name
+        feature.description = description
+        db.commit()
+        db.refresh(feature)
+    return feature
+
+def delete_feature(db: Session, model, feature_id: int):
+    feature = db.query(model).filter(model.id == feature_id).first()
+    if feature:
+        db.delete(feature)
+        db.commit()
+        return True
+    return False
+
+def get_random_feature(db: Session, model):
+    from sqlalchemy.sql.expression import func
+    return db.query(model).order_by(func.random()).first()

@@ -39,3 +39,62 @@ class NewsArticle(Base):
     
     def __repr__(self):
         return f"<NewsArticle {self.title}>"
+
+class AboutContent(Base):
+    __tablename__ = "about_content"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String(100), nullable=True)
+    
+    def __repr__(self):
+        return f"<AboutContent id={self.id}>"
+
+class Character(Base):
+    __tablename__ = "characters"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(String(100), nullable=True)
+    
+    def __repr__(self):
+        return f"<Character {self.name}>"
+
+class Place(Base):
+    __tablename__ = "places"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(String(100), nullable=True)
+    
+    def __repr__(self):
+        return f"<Place {self.name}>"
+
+class Weather(Base):
+    __tablename__ = "weather"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(String(100), nullable=True)
+    
+    def __repr__(self):
+        return f"<Weather {self.name}>"
+
+class Event(Base):
+    __tablename__ = "events"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by = Column(String(100), nullable=True)
+    
+    def __repr__(self):
+        return f"<Event {self.name}>"

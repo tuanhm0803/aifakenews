@@ -11,6 +11,8 @@ import CategoryPage from './pages/CategoryPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import GenerateNewsPage from './pages/GenerateNewsPage'
+import AboutPage from './pages/AboutPage'
+import FeaturesPage from './pages/FeaturesPage'
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/generate-news" element={<GenerateNewsPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
                 </Routes>
               </main>
             </div>

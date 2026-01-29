@@ -63,6 +63,16 @@ const Header = () => {
                 <span>{t('search')}</span>
               </button>
               
+              {/* About Page Link */}
+              <Link
+                to="/about"
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                title="About Us"
+              >
+                <span>📖</span>
+                <span className="hidden md:inline">About</span>
+              </Link>
+              
               {/* Language Switcher */}
               <button
                 onClick={toggleLanguage}

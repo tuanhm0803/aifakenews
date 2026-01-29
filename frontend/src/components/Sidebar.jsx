@@ -40,6 +40,12 @@ const Sidebar = () => {
       icon: '✨',
       label: 'Generate News',
       description: 'Create AI-generated fake news'
+    },
+    {
+      path: '/features',
+      icon: '🎭',
+      label: 'Manage Features',
+      description: 'Characters, Places, Weather, Events'
     }
   ]
 
